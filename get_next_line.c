@@ -12,6 +12,7 @@
 
 #include "get_next_line.h"
 
+
 static void	ft_bzero(void *s, unsigned int n)
 {
 	unsigned char	*c;
@@ -64,7 +65,7 @@ static char	*ft_strjoin_gnl(char *s1, char *s2, unsigned int n)
 	return (joined);
 }
 
-static char	*ft_strdup_gnl(char *s, unsigned int n)
+static char	*ft_strdup_gnl(char *buffer, unsigned int n)
 {
 	char			*allocated;
 	unsigned int	index;
@@ -72,43 +73,40 @@ static char	*ft_strdup_gnl(char *s, unsigned int n)
 
 	index = 0;
 	len = 0;
-	while (len < BUFFER_SIZE - n && s[len] != '\n')
+	while (len < BUFFER_SIZE - n && buffer[len] != '\n')
 		len++;
 	if (!(allocated = (char *)malloc(sizeof(char) * (len + 1))))
 		return (NULL);
 	while (index < len)
 	{
-		allocated[index] = s[index];
+		allocated[index] = buffer[index];
 		index++;
 	}
 	allocated[index] = 0;
 	return (allocated);
 }
 
-static int	ft_fill_line(char *s, unsigned int *index, int fd, char **line)
+static int	ft_fill_line(char *buffer, unsigned int *index, int fd, char **line)
 {
 	char	*tmp;
 
 	tmp = *line;
-	if (!(*line = ft_strdup_gnl(&s[*index], *index)))
+	if (!(*line = ft_strdup_gnl(&buffer[*index], *index)))
 		return (-1);
 	free(tmp);
-	while (ft_contains_eol(&s[*index], *index) == 0)
+	while (ft_contains_eol(&buffer[*index], *index) == 0)
 	{
-		ft_bzero(s, BUFFER_SIZE);
+		ft_bzero(buffer, BUFFER_SIZE);
 		*index = 0;
-		if (!(read(fd, s, BUFFER_SIZE)))
+		if (!(read(fd, buffer, BUFFER_SIZE)))
 			return (0);
 		tmp = *line;
-		*line = ft_strjoin_gnl(*line, s, *index);
+		*line = ft_strjoin_gnl(*line, buffer, *index);
 		free(tmp);
-		printf("\n---TEST---\n");
-		printf("line : %s\n", *line);
-		printf("---TEST---\n\n");
 	}
-	while (*index < BUFFER_SIZE && s[*index] != '\n')
+	while (*index < BUFFER_SIZE && buffer[*index] != '\n')
 		(*index)++;
-	if (*index < BUFFER_SIZE && s[*index] == '\n')
+	if (*index < BUFFER_SIZE && buffer[*index] == '\n')
 		(*index)++;
 	return (1);
 }
@@ -116,17 +114,13 @@ static int	ft_fill_line(char *s, unsigned int *index, int fd, char **line)
 int			get_next_line(int fd, char **line)
 {
 	static char			buffer[BUFFER_SIZE];
-	static unsigned int	index;
+	static unsigned int	index = 0;
 
 	if (!BUFFER_SIZE)
 		return (0);
-	index = 0;
 	*line = ft_strdup_gnl("", BUFFER_SIZE - 1);
-	if (index == BUFFER_SIZE)
-	{
+	if (index == BUFFER_SIZE && !(index = 0))
 		ft_bzero(buffer, BUFFER_SIZE);
-		index = 0;
-	}
 	if (index < BUFFER_SIZE && buffer[index])
 		return (ft_fill_line(buffer, &index, fd, line));
 	if (read(fd, buffer, BUFFER_SIZE) < 0)
@@ -143,9 +137,6 @@ int			main(int ac, char **av)
 
 	index = 0;
 	fd = open(av[1], O_RDONLY);
-	printf("res : %d line %d : %s\n", get_next_line(fd, &line), index, line);
-	printf("res : %d line %d : %s\n", get_next_line(fd, &line), index, line);
-	return (0);
 	while (get_next_line(fd, &line))
 	{
 		index++;
