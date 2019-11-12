@@ -12,36 +12,7 @@
 
 #include "get_next_line.h"
 
-
-static void	ft_bzero(void *s, unsigned int n)
-{
-	unsigned char	*c;
-	unsigned int	index;
-
-	index = 0;
-	c = (unsigned char *)s;
-	while (index < n)
-	{
-		c[index] = '\0';
-		index++;
-	}
-}
-
-static	int	ft_contains_eol(char *s, unsigned int n)
-{
-	unsigned int	index;
-
-	index = 0;
-	while (index < BUFFER_SIZE - n)
-	{
-		if (s[index] == '\n')
-			return (1);
-		index++;
-	}
-	return (0);
-}
-
-static char	*ft_strjoin_gnl(char *s1, char *s2, unsigned int n)
+char	*ft_strjoin_gnl(char *s1, char *s2, unsigned int n)
 {
 	char			*joined;
 	unsigned int	index;
@@ -65,7 +36,7 @@ static char	*ft_strjoin_gnl(char *s1, char *s2, unsigned int n)
 	return (joined);
 }
 
-static char	*ft_strdup_gnl(char *buffer, unsigned int n)
+char	*ft_strdup_gnl(char *buffer, unsigned int n)
 {
 	char			*allocated;
 	unsigned int	index;
@@ -86,7 +57,7 @@ static char	*ft_strdup_gnl(char *buffer, unsigned int n)
 	return (allocated);
 }
 
-static int	ft_fill_line(char *buffer, unsigned int *index, int fd, char **line)
+int		ft_fill_line(char *buffer, unsigned int *index, int fd, char **line)
 {
 	char	*tmp;
 
@@ -136,10 +107,13 @@ int			main(int ac, char **av)
 	int		fd;
 
 	index = 0;
-	fd = open(av[1], O_RDONLY);
-	while (get_next_line(fd, &line))
+	if (ac > 1)
 	{
-		index++;
-		printf("line %d : %s\n", index, line);
+		fd = open(av[1], O_RDONLY);
+		while (get_next_line(fd, &line))
+		{
+			index++;
+			printf("%s\n", line);
+		}
 	}
 }

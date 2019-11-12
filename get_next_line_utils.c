@@ -12,31 +12,30 @@
 
 #include "get_next_line.h"
 
-char	*ft_strdup_gnl(char const *s)
+void	ft_bzero(void *s, unsigned int n)
 {
-	int		index;
-	char	*new;
+	unsigned char	*c;
+	unsigned int	index;
 
 	index = 0;
-	while (s[index] && s[index] != '\n')
-		index++;
-	if (!(new = (char *)malloc(sizeof(char) * (index + 1))))
-		return (NULL);
-	index = 0;
-	while (s[index] && s[index] != '\n')
+	c = (unsigned char *)s;
+	while (index < n)
 	{
-		new[index] = s[index];
+		c[index] = '\0';
 		index++;
 	}
-	new[index] = 0;
-	return (new);
 }
 
-int	get_line(int fd, char **line)
+int		ft_contains_eol(char *s, unsigned int n)
 {
-	static char	buff[BUFFER_SIZE + 1];
-	static int	index;
-	int			r;
+	unsigned int	index;
 
-	
+	index = 0;
+	while (index < BUFFER_SIZE - n)
+	{
+		if (s[index] == '\n')
+			return (1);
+		index++;
+	}
+	return (0);
 }
