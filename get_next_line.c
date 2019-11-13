@@ -6,99 +6,115 @@
 /*   By: llaurent <llaurent@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/11/07 10:18:50 by llaurent          #+#    #+#             */
-/*   Updated: 2019/11/13 09:50:59 by llaurent         ###   ########.fr       */
+/*   Updated: 2019/11/13 17:03:22 by llaurent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char		*ft_strjoin_gnl(char *s1, char *s2, unsigned int n)
+static int			no_newline_in_str(char *str)
 {
-	char			*joined;
-	unsigned int	index;
-	unsigned int	len_s1;
-	unsigned int	len_s2;
+	int	i;
 
-	index = 0;
-	len_s1 = 0;
-	len_s2 = 0;
-	while (s1[len_s1])
-		len_s1++;
-	while (len_s2 < BUFFER_SIZE - n)
-		len_s2++;
-	if (!(joined = (char *)malloc(sizeof(char) * (len_s1 + len_s2 + 1))))
-		return (NULL);
-	while (*s1 && *s1 != '\n')
-		joined[index++] = *s1++;
-	while (index < len_s1 + len_s2 && *s2 != '\n')
-		joined[index++] = *s2++;
-	joined[index] = 0;
-	return (joined);
-}
-
-char		*ft_strdup_gnl(char *buffer, unsigned int n)
-{
-	char			*allocated;
-	unsigned int	index;
-	unsigned int	len;
-
-	index = 0;
-	len = 0;
-	while (len < BUFFER_SIZE - n && buffer[len] != '\n')
-		len++;
-	if (!(allocated = (char *)malloc(sizeof(char) * (len + 1))))
-		return (NULL);
-	while (index < len)
-	{
-		allocated[index] = buffer[index];
-		index++;
-	}
-	allocated[index] = 0;
-	return (allocated);
-}
-
-int			ft_fill_line(char *buffer, unsigned int *index, int fd, char **line)
-{
-	char	*tmp;
-
-	tmp = *line;
-	if (!(*line = ft_strdup_gnl(&buffer[*index], *index)))
-		return (-1);
-	free(tmp);
-	while (ft_contains_eol(&buffer[*index], *index) == 0)
-	{
-		ft_bzero(buffer, BUFFER_SIZE);
-		*index = 0;
-		if (!(read(fd, buffer, BUFFER_SIZE)))
-			return (0);
-		tmp = *line;
-		*line = ft_strjoin_gnl(*line, buffer, *index);
-		free(tmp);
-	}
-	while (*index < BUFFER_SIZE && buffer[*index] != '\n')
-		(*index)++;
-	if (*index < BUFFER_SIZE && buffer[*index] == '\n')
-		(*index)++;
+	i = 0;
+	if (!str)
+		return (1);
+	while (str[i] && str[i] != '\n')
+		i++;
+	if (str[i] == '\n')
+		return (0);
 	return (1);
 }
 
-int			get_next_line(int fd, char **line)
+static int			get_content_from_file(int fd, char **str)
 {
-	static char			buffer[BUFFER_SIZE];
-	static unsigned int	index = 0;
+	int		nb_read;
+	char	*s;
+	char	*buff;
 
-	if (!BUFFER_SIZE)
-		return (0);
-	*line = ft_strdup_gnl("", BUFFER_SIZE - 1);
-	if (index == BUFFER_SIZE && !(index = 0))
-		ft_bzero(buffer, BUFFER_SIZE);
-	if (index < BUFFER_SIZE && buffer[index])
-		return (ft_fill_line(buffer, &index, fd, line));
-	if (read(fd, buffer, BUFFER_SIZE) < 0)
+	if (!(buff = ft_strnew(BUFFER_SIZE + 1)))
 		return (-1);
-	else
-		return (ft_fill_line(buffer, &index, fd, line));
+	if ((nb_read = read(fd, buff, BUFFER_SIZE)) <= 0)
+	{
+		free(buff);
+		return (nb_read);
+	}
+	buff[nb_read] = '\0';
+	if (!(s = ft_strnew(ft_strlen(*str) + nb_read + 1)))
+		return (-1);
+	if (*str)
+	{
+		s = ft_strncat(s, *str, ft_strlen(*str));
+		free(*str);
+	}
+	*str = ft_strncat(s, buff, nb_read);
+	free(buff);
+	if (no_newline_in_str(*str))
+		return (get_content_from_file(fd, str));
+	return (1);
 }
+
+static int			extract_line(char **line, char **str, int *i, int *j)
+{
+	char	*s;
+	char	*s1;
+	char	*tmp;
+
+	while ((*str)[*i] && (*str)[*i] != '\n')
+		(*i)++;
+	if (!(s = ft_strnew(*i + 1)))
+		return (-1);
+	*line = ft_strncat(s, *str, *i);
+	*j = ft_strlen(*str) - *i;
+	if (!*j)
+		return (nigun_static(str, 0));
+	if ((s1 = ft_strnew(*j)))
+	{
+		tmp = ft_strncat(s1, *str + *i + 1, *j - 1);
+		free(*str);
+		*str = tmp;
+		return (1);
+	}
+	return (nigun_static(str, -1));
+}
+
+static int			manage_str(char **str, char **line)
+{
+	int res;
+	int	i;
+	int	j;
+
+	i = 0;
+	j = 0;
+	res = 0;
+	if ((res = extract_line(line, str, &i, &j) != 1))
+	{
+		if (res == -1)
+			return (nigun_static(str, -1));
+		return (nigun_static(str, 0));
+	}
+	return (1);
+}
+
+int					get_next_line(int fd, char **line)
+{
+	static char *str = NULL;
+
+	if (fd < 0 || !line || BUFFER_SIZE <= 0)
+		return (-1);
+	if (no_newline_in_str(str))
+	{
+		if (get_content_from_file(fd, &str) == -1)
+			return (nigun_static(&str, -1));
+		if (!str)
+		{
+			*line = ft_strnew(1);
+			return (0);
+		}
+	}
+	return (manage_str(&str, line));
+}
+
 
 int			main(int ac, char **av)
 {
@@ -107,15 +123,14 @@ int			main(int ac, char **av)
 	int		fd;
 
 	index = 0;
-	fd = open(av[1], O_RDONLY);
 	if (ac > 1)
 	{
 		fd = open(av[1], O_RDONLY);
-		while (get_next_line(fd, &line))
+		while (get_next_line(0, &line) == SUCCESS_CODE)
 		{
 			index++;
-			printf("line : %s\n", line);
+			printf("%s\n", line);
 		}
-		printf("line : %s", line);
+		printf("%s", line);
 	}
 }

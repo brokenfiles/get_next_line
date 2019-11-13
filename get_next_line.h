@@ -22,10 +22,9 @@
 # include <fcntl.h>
 # include <stdio.h>
 
-int		get_next_line(int fd, char **line);
-void	ft_bzero(void *s, unsigned int n);
-int		ft_contains_eol(char *s, unsigned int n);
-char	*ft_strjoin_gnl(char *s1, char *s2, unsigned int n);
-char	*ft_strdup_gnl(char *buffer, unsigned int n);
-int		ft_fill_line(char *buffer, unsigned int *index, int fd, char **line);
+int				ft_strlen(char *str);
+char			*ft_strnew(int size);
+int				get_next_line(int fd, char **line);
+char			*ft_strncat(char *dest, char *src, unsigned int nb);
+int				nigun_static(char **str, int return_value);
 #endif

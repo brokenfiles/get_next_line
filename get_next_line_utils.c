@@ -6,36 +6,56 @@
 /*   By: llaurent <llaurent@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/11/07 10:19:11 by llaurent          #+#    #+#             */
-/*   Updated: 2019/11/08 15:30:24 by llaurent         ###   ########.fr       */
+/*   Updated: 2019/11/13 15:45:35 by llaurent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-void	ft_bzero(void *s, unsigned int n)
+char	*ft_strncat(char *dest, char *src, unsigned int nb)
 {
-	unsigned char	*c;
-	unsigned int	index;
+	unsigned int lens;
+	unsigned int i;
 
-	index = 0;
-	c = (unsigned char *)s;
-	while (index < n)
-	{
-		c[index] = '\0';
-		index++;
-	}
+	i = 0;
+	lens = ft_strlen(dest);
+	while (src[i] && i < nb)
+		dest[lens++] = src[i++];
+	dest[lens] = '\0';
+	return (dest);
 }
 
-int		ft_contains_eol(char *s, unsigned int n)
+char	*ft_strnew(int size)
 {
-	unsigned int	index;
+	char	*ptr;
+	int		i;
 
-	index = 0;
-	while (index < BUFFER_SIZE - n)
-	{
-		if (s[index] == '\n')
-			return (1);
-		index++;
-	}
-	return (0);
+	if (!(ptr = (char *)malloc(size)))
+		return (NULL);
+	i = 0;
+	while (i < size)
+		ptr[i++] = 0;
+	return (ptr);
 }
+
+int		ft_strlen(char *str)
+{
+	int i;
+	int lens;
+
+	i = -1;
+	lens = 0;
+	if (str)
+		while (str[++i])
+			lens++;
+	return (lens);
+}
+
+int		nigun_static(char **str, int return_value)
+{
+	if (*str)
+		free(*str);
+	*str = NULL;
+	return (return_value);
+}
+
