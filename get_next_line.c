@@ -6,13 +6,13 @@
 /*   By: llaurent <llaurent@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/11/07 10:18:50 by llaurent          #+#    #+#             */
-/*   Updated: 2019/11/11 14:15:22 by llaurent         ###   ########.fr       */
+/*   Updated: 2019/11/13 09:50:59 by llaurent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char	*ft_strjoin_gnl(char *s1, char *s2, unsigned int n)
+char		*ft_strjoin_gnl(char *s1, char *s2, unsigned int n)
 {
 	char			*joined;
 	unsigned int	index;
@@ -36,7 +36,7 @@ char	*ft_strjoin_gnl(char *s1, char *s2, unsigned int n)
 	return (joined);
 }
 
-char	*ft_strdup_gnl(char *buffer, unsigned int n)
+char		*ft_strdup_gnl(char *buffer, unsigned int n)
 {
 	char			*allocated;
 	unsigned int	index;
@@ -57,7 +57,7 @@ char	*ft_strdup_gnl(char *buffer, unsigned int n)
 	return (allocated);
 }
 
-int		ft_fill_line(char *buffer, unsigned int *index, int fd, char **line)
+int			ft_fill_line(char *buffer, unsigned int *index, int fd, char **line)
 {
 	char	*tmp;
 
@@ -107,13 +107,15 @@ int			main(int ac, char **av)
 	int		fd;
 
 	index = 0;
+	fd = open(av[1], O_RDONLY);
 	if (ac > 1)
 	{
 		fd = open(av[1], O_RDONLY);
 		while (get_next_line(fd, &line))
 		{
 			index++;
-			printf("%s\n", line);
+			printf("line : %s\n", line);
 		}
+		printf("line : %s", line);
 	}
 }
