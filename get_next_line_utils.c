@@ -6,7 +6,7 @@
 /*   By: llaurent <llaurent@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/11/07 10:19:11 by llaurent          #+#    #+#             */
-/*   Updated: 2019/11/13 15:45:35 by llaurent         ###   ########.fr       */
+/*   Updated: 2019/11/15 10:32:14 by llaurent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,48 +14,46 @@
 
 char	*ft_strncat(char *dest, char *src, unsigned int nb)
 {
-	unsigned int lens;
-	unsigned int i;
+	unsigned int	len;
+	unsigned int	index;
 
-	i = 0;
-	lens = ft_strlen(dest);
-	while (src[i] && i < nb)
-		dest[lens++] = src[i++];
-	dest[lens] = '\0';
+	index = 0;
+	len = ft_strlen(dest);
+	while (src[index] && index < nb)
+		dest[len++] = src[index++];
+	dest[len] = 0;
 	return (dest);
 }
 
-char	*ft_strnew(int size)
+char	*ft_strnew(int n)
 {
-	char	*ptr;
-	int		i;
+	char	*string;
+	int		index;
 
-	if (!(ptr = (char *)malloc(size)))
+	if (!(string = (char *)malloc(n)))
 		return (NULL);
-	i = 0;
-	while (i < size)
-		ptr[i++] = 0;
-	return (ptr);
+	index = 0;
+	while (index < n)
+		string[index++] = 0;
+	return (string);
 }
 
 int		ft_strlen(char *str)
 {
-	int i;
-	int lens;
+	int	index;
 
-	i = -1;
-	lens = 0;
-	if (str)
-		while (str[++i])
-			lens++;
-	return (lens);
+	index = 0;
+	if (!str)
+		return (0);
+	while (str[index])
+		index++;
+	return (index);
 }
 
-int		nigun_static(char **str, int return_value)
+int		free_string_and_return(char **string, int val)
 {
-	if (*str)
-		free(*str);
-	*str = NULL;
-	return (return_value);
+	if (*string)
+		free(*string);
+	*string = NULL;
+	return (val);
 }
-

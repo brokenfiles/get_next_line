@@ -6,115 +6,112 @@
 /*   By: llaurent <llaurent@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/11/07 10:18:50 by llaurent          #+#    #+#             */
-/*   Updated: 2019/11/13 17:03:22 by llaurent         ###   ########.fr       */
+/*   Updated: 2019/11/15 11:28:24 by llaurent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-static int			no_newline_in_str(char *str)
+static int	contains_char(char *s, char c)
 {
-	int	i;
+	int	index;
 
-	i = 0;
-	if (!str)
-		return (1);
-	while (str[i] && str[i] != '\n')
-		i++;
-	if (str[i] == '\n')
+	index = 0;
+	if (!s)
 		return (0);
-	return (1);
+	while (s[index])
+	{
+		if (s[index] == c)
+			return (SUCCESS_CODE);
+		index++;
+	}
+	return (0);
 }
 
-static int			get_content_from_file(int fd, char **str)
+static int	join_line(int fd, char **string)
 {
-	int		nb_read;
+	int		r;
 	char	*s;
-	char	*buff;
+	char	*buffer;
 
-	if (!(buff = ft_strnew(BUFFER_SIZE + 1)))
-		return (-1);
-	if ((nb_read = read(fd, buff, BUFFER_SIZE)) <= 0)
+	if (!(buffer = ft_strnew(BUFFER_SIZE + 1)))
+		return (ERROR_CODE);
+	if ((r = read(fd, buffer, BUFFER_SIZE)) <= 0)
 	{
-		free(buff);
-		return (nb_read);
+		free(buffer);
+		return (r);
 	}
-	buff[nb_read] = '\0';
-	if (!(s = ft_strnew(ft_strlen(*str) + nb_read + 1)))
-		return (-1);
-	if (*str)
+	buffer[r] = '\0';
+	if (!(s = ft_strnew(ft_strlen(*string) + (r + 1))))
+		return (ERROR_CODE);
+	if (*string)
 	{
-		s = ft_strncat(s, *str, ft_strlen(*str));
-		free(*str);
+		s = ft_strncat(s, *string, ft_strlen(*string));
+		free(*string);
 	}
-	*str = ft_strncat(s, buff, nb_read);
-	free(buff);
-	if (no_newline_in_str(*str))
-		return (get_content_from_file(fd, str));
-	return (1);
+	*string = ft_strncat(s, buffer, r);
+	free(buffer);
+	if (!contains_char(*string, '\n'))
+		return (join_line(fd, string));
+	return (SUCCESS_CODE);
 }
 
-static int			extract_line(char **line, char **str, int *i, int *j)
+static int	get_only_string(char **line, char **string, int *index, int *index2)
 {
-	char	*s;
-	char	*s1;
 	char	*tmp;
+	char	*s2;
+	char	*s;
 
-	while ((*str)[*i] && (*str)[*i] != '\n')
-		(*i)++;
-	if (!(s = ft_strnew(*i + 1)))
-		return (-1);
-	*line = ft_strncat(s, *str, *i);
-	*j = ft_strlen(*str) - *i;
-	if (!*j)
-		return (nigun_static(str, 0));
-	if ((s1 = ft_strnew(*j)))
+	while ((*string)[*index] && (*string)[*index] != '\n')
+		(*index)++;
+	if (!(s = ft_strnew(*index + 1)))
+		return (ERROR_CODE);
+	*line = ft_strncat(s, *string, *index);
+	*index2 = ft_strlen(*string) - *index;
+	if (!(*index2))
+		return (free_string_and_return(string, EOF_CODE));
+	if ((s2 = ft_strnew(*index2)))
 	{
-		tmp = ft_strncat(s1, *str + *i + 1, *j - 1);
-		free(*str);
-		*str = tmp;
-		return (1);
+		tmp = ft_strncat(s2, *string + *index + 1, *index2 - 1);
+		free(*string);
+		*string = tmp;
+		return (SUCCESS_CODE);
 	}
-	return (nigun_static(str, -1));
+	return (free_string_and_return(string, ERROR_CODE));
 }
 
-static int			manage_str(char **str, char **line)
+static int	get_line_from_str(char **string, char **line)
 {
-	int res;
-	int	i;
-	int	j;
+	int	index;
+	int	index2;
+	int	r;
 
-	i = 0;
-	j = 0;
-	res = 0;
-	if ((res = extract_line(line, str, &i, &j) != 1))
-	{
-		if (res == -1)
-			return (nigun_static(str, -1));
-		return (nigun_static(str, 0));
-	}
-	return (1);
+	index = 0;
+	index2 = 0;
+	r = 0;
+	if ((r = get_only_string(line, string, &index, &index2)) != 1)
+		return (free_string_and_return(string, 0));
+	return (SUCCESS_CODE);
 }
 
-int					get_next_line(int fd, char **line)
+int			get_next_line(int fd, char **line)
 {
-	static char *str = NULL;
+	static char	*string = NULL;
 
 	if (fd < 0 || !line || BUFFER_SIZE <= 0)
-		return (-1);
-	if (no_newline_in_str(str))
+		return (ERROR_CODE);
+	if (!contains_char(string, '\n'))
 	{
-		if (get_content_from_file(fd, &str) == -1)
-			return (nigun_static(&str, -1));
-		if (!str)
+		if (join_line(fd, &string) == ERROR_CODE)
+			return (free_string_and_return(&string, ERROR_CODE));
+		if (!string)
 		{
 			*line = ft_strnew(1);
-			return (0);
+			return (EOF_CODE);
 		}
 	}
-	return (manage_str(&str, line));
+	return (get_line_from_str(&string, line));
 }
-
 
 int			main(int ac, char **av)
 {
@@ -126,7 +123,7 @@ int			main(int ac, char **av)
 	if (ac > 1)
 	{
 		fd = open(av[1], O_RDONLY);
-		while (get_next_line(0, &line) == SUCCESS_CODE)
+		while (get_next_line(fd, &line) == SUCCESS_CODE)
 		{
 			index++;
 			printf("%s\n", line);

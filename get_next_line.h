@@ -26,5 +26,5 @@ int				ft_strlen(char *str);
 char			*ft_strnew(int size);
 int				get_next_line(int fd, char **line);
 char			*ft_strncat(char *dest, char *src, unsigned int nb);
-int				nigun_static(char **str, int return_value);
+int				free_string_and_return(char **str, int return_value);
 #endif
